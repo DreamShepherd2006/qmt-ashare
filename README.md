@@ -21,10 +21,10 @@
 ## 目录
 
 ```
-ashare_put_v5_4.py          当前版本（UTF-8，可编辑/review/diff）
-deliver/ashare_put_v5_4.py  交付版本（GBK + CRLF）——整份粘进 QMT 的就是它
+ashare_put_v5_5.py          当前版本（UTF-8，可编辑/review/diff）
+deliver/ashare_put_v5_5.py  交付版本（GBK + CRLF）——整份粘进 QMT 的就是它
 build_deliver.py            一键从当前版本生成交付版本（并校验可 compile）
-archive/                    历史版本 v1 … v5_3 + 旧交付件 + 两个一次性补丁脚本（只读，供与旧日志对照）
+archive/                    历史版本 v1 … v5_4 + 旧交付件 + 两个一次性补丁脚本（只读，供与旧日志对照）
 probes/                     QMT 侧只读探针（环境探测、期权链、1m 取数、回测盘口）
 selftest/                   逐版本本地自测（不依赖 QMT，断言式 OK/FAIL）
 CHANGELOG.md                逐版变更
@@ -33,8 +33,8 @@ CHANGELOG.md                逐版变更
 ## 交付流程
 
 ```bash
-python3 build_deliver.py ashare_put_v5_4     # 生成 deliver（GBK+CRLF，校验可 compile）
-python3 selftest/selftest_v5_4.py            # 本地自测，必须全绿
+python3 build_deliver.py ashare_put_v5_5     # 生成 deliver（GBK+CRLF，校验可 compile）
+python3 selftest/selftest_v5_5.py            # 本地自测，必须全绿
 ```
 
 `build_deliver.py` 打印 `bytes / crlf / build`；selftest 断言 `crlf == 行数`、`bare_lf == 0`、GBK 可 `compile`。
@@ -58,9 +58,9 @@ QMT 交易机通常不能上外网，所以 **GitHub 只作审计与追溯，不
 
 ## 版本标识
 
-- 文件名带版本：`ashare_put_v5_4.py`（改脚本**不覆盖**旧版，新版另存新文件，旧版移入 `archive/`）
-- 文件内 `BUILD = '20261122-1610'` / `VERSION_LABEL = 'v5_4'`，INIT 行会打印，日志能直接对上版本
-- git tag `qmt-v5_4` 指向该版本入库的 commit
+- 文件名带版本：`ashare_put_v5_5.py`（改脚本**不覆盖**旧版，新版另存新文件，旧版移入 `archive/`）
+- 文件内 `BUILD = '20261122-1625'` / `VERSION_LABEL = 'v5_5'`，INIT 行会打印，日志能直接对上版本
+- git tag `qmt-v5_4` 指向该版本入库的 commit（v5_5 待 QMT 同参回测对比通过后再打）
 
 ## 数据说明
 
@@ -73,4 +73,7 @@ QMT 交易机通常不能上外网，所以 **GitHub 只作审计与追溯，不
 - 平台余额含义务仓市值重估，**不能当盈亏依据**；净 = 自建账本「已实现 + 浮盈亏」
 - 价差在报告层用 `_spread_cost()` 并入逐笔成本（虚值/浅价 1 元/张；实值 px×10000×1.25%，上限 60 元/张）
 - 手续费按张：卖开 1.20 / 买平 1.70
+- TD 计数：**按交易日切分**（隔夜/非交易日重置、午休不切），与云端 td-table 同口径（v5_5 起；`SESSION_SPLIT=0` 可回到旧口径）
+- 技术性失败（无价/无候选/无报价/在途委托）可在同浪内重试，上限 3 次；资金与张数门拒绝不重试（v5_5 起）
+- 止盈**判定与成交同源取 ask**（卖方买回实际支付价）；ask 缺失回退 bid（v5_5 起）
 - 实盘双锁：界面选实盘 **且** `LIVE_CONFIRM = 1` 才发单
